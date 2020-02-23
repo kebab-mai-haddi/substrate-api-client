@@ -56,6 +56,9 @@ pub mod node_metadata;
 #[cfg(feature = "std")]
 pub mod rpc;
 #[cfg(feature = "std")]
+pub use rpc::XtStatus;
+
+#[cfg(feature = "std")]
 pub mod utils;
 
 use runtime_primitives::{AccountId32, MultiSignature};
@@ -228,19 +231,36 @@ where
         )
     }
 
-    pub fn send_extrinsic(&self, xthex_prefixed: String) -> WsResult<Hash> {
+    pub fn send_extrinsic(&self, xthex_prefixed: String, exit_on: XtStatus) -> WsResult<Option<Hash>> {
         debug!("sending extrinsic: {:?}", xthex_prefixed);
 
         let jsonreq = json_req::author_submit_and_watch_extrinsic(&xthex_prefixed).to_string();
 
         let (result_in, result_out) = channel();
-        rpc::send_extrinsic_and_wait_until_finalized(
-            self.url.clone(),
-            jsonreq.clone(),
-            result_in.clone(),
-        );
-
-        Ok(hexstr_to_hash(result_out.recv().unwrap()).unwrap())
+        match exit_on {
+            XtStatus::Finalized => {
+                rpc::send_extrinsic_and_wait_until_finalized(
+                    self.url.clone(),
+                    jsonreq.clone(),
+                    result_in.clone(),
+                );
+                let res = result_out.recv().unwrap();
+                info!("finalized: {}", res);
+                //Ok(Some(hexstr_to_hash(result_out.recv().unwrap()).unwrap()))
+                Ok(None)
+            },
+            XtStatus::Ready => {
+                rpc::send_extrinsic(
+                    self.url.clone(),
+                    jsonreq.clone(),
+                    result_in.clone(),
+                );
+                let res = result_out.recv().unwrap();
+                info!("ready: {}", res);
+                Ok(None)
+            },
+            _ => panic!("can only wait for finalized or ready extrinsic status"),
+        }
     }
 
     pub fn subscribe_events(&self, sender: ThreadOut<String>) {

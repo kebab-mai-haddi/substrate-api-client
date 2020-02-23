@@ -36,7 +36,7 @@ use rstd::prelude::*;
 // use my_node_runtime::Event;
 use node_runtime::Event;
 
-use substrate_api_client::{extrinsic::xt_primitives::GenericAddress, utils::*, Api};
+use substrate_api_client::{extrinsic::xt_primitives::GenericAddress, utils::*, Api, XtStatus};
 
 fn main() {
     env_logger::init();
@@ -62,7 +62,7 @@ fn main() {
         "[+] Putting contract code on chain with extrinsic:\n\n{:?}\n",
         xt
     );
-    let tx_hash = api.send_extrinsic(xt.hex_encode()).unwrap();
+    let tx_hash = api.send_extrinsic(xt.hex_encode(), XtStatus::Ready).unwrap();
     println!("[+] Transaction got finalized. Hash: {:?}\n", tx_hash);
 
     // setup the events listener for our chain.
@@ -82,7 +82,7 @@ fn main() {
         "[+] Creating a contract instance with extrinsic:\n\n{:?}\n",
         xt
     );
-    let tx_hash = api.send_extrinsic(xt.hex_encode()).unwrap();
+    let tx_hash = api.send_extrinsic(xt.hex_encode(), XtStatus::Ready).unwrap();
     println!("[+] Transaction got finalized. Hash: {:?}\n", tx_hash);
 
     // Now if the contract has been instantiated successfully, the following events are fired:
@@ -108,7 +108,7 @@ fn main() {
         "[+] Calling the contract with extrinsic Extrinsic:\n{:?}\n\n",
         xt
     );
-    let tx_hash = api.send_extrinsic(xt.hex_encode()).unwrap();
+    let tx_hash = api.send_extrinsic(xt.hex_encode(), XtStatus::Finalized).unwrap();
     println!("[+] Transaction got finalized. Hash: {:?}", tx_hash);
 }
 
