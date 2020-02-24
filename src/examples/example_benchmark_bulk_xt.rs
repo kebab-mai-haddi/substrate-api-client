@@ -13,8 +13,9 @@
     limitations under the License.
 */
 
-//! This examples shows how to use the compose_extrinsic_offline macro which generates an extrinsic
-//! without asking the node for nonce and does not need to know the metadata
+//! This examples floates the node with a series of transactions
+// run this against test node with
+// > substrate-test-node --dev --execution native --ws-port 9979 -ltxpool=debug
 
 use clap::{load_yaml, App};
 
@@ -42,20 +43,24 @@ fn main() {
     // define the recipient
     let to = AccountKeyring::Bob.to_account_id();
 
-    // compose the extrinsic with all the element
-    let xt: UncheckedExtrinsicV4<_> = compose_extrinsic_offline!(
-        api.clone().signer.unwrap(),
-        Call::Balances(BalancesCall::transfer(to.clone().into(), 42)),
-        api.get_nonce().unwrap(),
-        api.genesis_hash,
-        api.runtime_version.spec_version
-    );
+    let mut nonce = api.get_nonce().unwrap();
 
-    println!("[+] Composed Extrinsic:\n {:?}\n", xt);
-
-    // send and watch extrinsic until finalized
-    let blockh = api.send_extrinsic(xt.hex_encode(), XtStatus::Finalized).unwrap();
-    println!("[+] Transaction got finalized in block {:?}", blockh);
+    loop {
+        // compose the extrinsic with all the element
+        let xt: UncheckedExtrinsicV4<_> = compose_extrinsic_offline!(
+            api.clone().signer.unwrap(),
+            Call::Balances(BalancesCall::transfer(to.clone().into(), 1_000_000)),
+            nonce,
+            api.genesis_hash,
+            api.runtime_version.spec_version
+        );
+        // send and watch extrinsic until finalized
+        println!("sending extrinsic with nonce {}", nonce);
+        let blockh = api.send_extrinsic(xt.hex_encode(), XtStatus::Ready).unwrap();
+        
+        nonce += 1;
+    }
+    
 }
 
 pub fn get_node_url_from_cli() -> String {
