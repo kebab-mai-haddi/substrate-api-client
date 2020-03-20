@@ -173,3 +173,7 @@ path = "src/examples/example_generic_event_callback.rs"
 [[example]]
 name = "example_sudo"
 path = "src/examples/example_sudo.rs"
+
+[[example]]
+name = "substratekitties"
+path = "src/examples/example_substratekitties.rs"
