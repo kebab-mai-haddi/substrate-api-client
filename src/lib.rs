@@ -157,7 +157,21 @@ where
         param: Option<Vec<u8>>,
     ) -> WsResult<String> {
         let keyhash = storage_key_hash(module, storage_key_name, param);
-        debug!("with storage key: {}", keyhash);
+        // let keyhash = storage_key_name.clone()
+        println!("with storage key: {}", keyhash);
+        let jsonreq = json_req::state_get_storage(&keyhash);
+        Self::_get_request(url, jsonreq.to_string())
+    }
+
+    fn _get_file_storage(
+        url: String,
+        module: &str,
+        storage_key_name: &str,
+        param: &str,
+    ) -> WsResult<String> {
+        let keyhash = file_storage_key_hash(module, storage_key_name, param);
+        // let keyhash = storage_key_name.clone()
+        println!("FINAL with storage key: {}", keyhash);
         let jsonreq = json_req::state_get_storage(&keyhash);
         Self::_get_request(url, jsonreq.to_string())
     }
@@ -178,6 +192,7 @@ where
     // low level access
     fn _get_request(url: String, jsonreq: String) -> WsResult<String> {
         let (result_in, result_out) = channel();
+        println!("Making RPC with the json req: {}", jsonreq);
         rpc::get(url, jsonreq, result_in);
 
         Ok(result_out.recv().unwrap())
@@ -226,6 +241,15 @@ where
         param: Option<Vec<u8>>,
     ) -> WsResult<String> {
         Self::_get_storage(self.url.clone(), storage_prefix, storage_key_name, param)
+    }
+
+    pub fn get_file_storage(
+        &self,
+        storage_prefix: &str,
+        storage_key_name: &str,
+        param: &str,
+    ) -> WsResult<String> {
+        Self::_get_file_storage(self.url.clone(), storage_prefix, storage_key_name, param)
     }
 
     pub fn get_storage_double_map(

@@ -16,26 +16,75 @@
 */
 
 use balances::AccountData;
+use blake2_rfc::blake2b::Blake2b;
 use codec::{Decode, Error};
 use hex::FromHexError;
 use primitive_types::U256;
 use sp_core::blake2_256;
 use sp_core::twox_128;
 use sp_core::H256 as Hash;
+use std::str;
 
 fn storage_key_hash_vec(module: &str, storage_key_name: &str, param: Option<Vec<u8>>) -> Vec<u8> {
     let mut key = twox_128(module.as_bytes()).to_vec();
+    println!("Keyhash after module hex encoding is: {:?}", key);
+
     key.extend(&twox_128(storage_key_name.as_bytes()));
+    println!("Key after storage encoding is: {:?}", key);
 
     if let Some(p) = param {
         key.extend(&blake2_256(&p));
     }
+    println!("key after file hash encoding of blake2_256 is: {:?}", key);
 
+    key
+}
+
+fn file_storage_key_hash_vec(module: &str, storage_key_name: &str, param: &str) -> Vec<u8> {
+    let mut key = twox_128(module.as_bytes()).to_vec();
+    // println!("Keyhash after module hex encoding is: {:?}", key);
+
+    key.extend(&twox_128(storage_key_name.as_bytes()));
+    // println!("Key after storage encoding is: {:?}", key);
+
+    key.extend(&blake2_256(param.as_bytes()));
+
+    let module_encoding = hex::encode(&twox_128(module.as_bytes()));
+    let storage_key_name_encoding = hex::encode(&twox_128(storage_key_name.as_bytes()));
+    let mut hasher = Blake2b::new(32);
+    hasher.update(param.as_bytes());
+    let finalize = hasher.finalize();
+    let res = hex::encode(finalize.as_bytes());
+    // let file_hash_encoding = hex::encode(&blake2_256(param.as_bytes()));
+    println!("------------------------------------------");
+    println!("Module encoding: {:?}", module_encoding);
+    println!("Storage Key Name encoding: {:?}", storage_key_name_encoding);
+    println!("File Hash encoding: {:?}", res);
+    println!("------------------------------------------");
+
+    println!(
+        "IMPORTANT: key after file hash encoding of blake2_256 is: {:?}",
+        key
+    );
     key
 }
 
 pub fn storage_key_hash(module: &str, storage_key_name: &str, param: Option<Vec<u8>>) -> String {
     let mut keyhash_str = hex::encode(storage_key_hash_vec(module, storage_key_name, param));
+    println!(
+        "keyhash_str after storage_key_hash_vec func call is: {:?}",
+        keyhash_str
+    );
+    keyhash_str.insert_str(0, "0x");
+    keyhash_str
+}
+
+pub fn file_storage_key_hash(module: &str, storage_key_name: &str, param: &str) -> String {
+    let mut keyhash_str = hex::encode(file_storage_key_hash_vec(module, storage_key_name, param));
+    println!(
+        "keyhash_str after storage_key_hash_vec func call is: {:?}",
+        keyhash_str
+    );
     keyhash_str.insert_str(0, "0x");
     keyhash_str
 }

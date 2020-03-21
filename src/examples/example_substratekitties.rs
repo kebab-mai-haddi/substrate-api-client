@@ -15,42 +15,25 @@
 
 ///! Very simple example that shows how to get some simple storage values.
 use clap::{load_yaml, App};
-use codec::Encode;
 use keyring::AccountKeyring;
-
-use sp_core::crypto::Pair;
+use std::option::Option;
 use substrate_api_client::{utils::hexstr_to_u256, Api};
 
 fn main() {
     env_logger::init();
     let url = get_node_url_from_cli();
-
     let mut api = Api::new(format!("ws://{}", url));
+    let signer = AccountKeyring::Alice.pair();
+    api.signer = Some(signer);
 
     // get some plain storage value
-    let result_str = api.get_storage("Balances", "TotalIssuance", None).unwrap();
+    // let file_key: Option<Vec<u8>> = Some("0x0000000000000000000000000000000000000000000000000000000000000001".as_bytes().to_vec());
+    let file_hash = "0x0000000000000000000000000000000000000000000000000000000000000001";
+    let result_str = api.get_file_storage("KittyStorage", "Value", file_hash).unwrap();
+    println!("Result string is: {}", result_str);
     let result = hexstr_to_u256(result_str).unwrap();
-    println!("[+] TotalIssuance is {}", result);
+    println!("The result is {}", result);
 
-    // get Alice's AccountNonce
-    let accountid = AccountKeyring::Alice.to_account_id();
-    let result_str = api
-        .get_storage("System", "AccountNonce", Some(accountid.encode()))
-        .unwrap();
-    let result = hexstr_to_u256(result_str).unwrap();
-    println!("[+] Alice's Account Nonce is {}", result.low_u32());
-
-    // get Alice's AccountNonce with the AccountKey
-    let signer = AccountKeyring::Alice.pair();
-    let result_str = api
-        .get_storage("System", "AccountNonce", Some(signer.public().encode()))
-        .unwrap();
-    let result = hexstr_to_u256(result_str).unwrap();
-    println!("[+] Alice's Account Nonce is {}", result.low_u32());
-
-    // get Alice's AccountNonce with api.get_nonce()
-    api.signer = Some(signer);
-    println!("[+] Alice's Account Nonce is {}", api.get_nonce().unwrap());
 }
 
 pub fn get_node_url_from_cli() -> String {
