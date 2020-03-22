@@ -16,7 +16,6 @@
 */
 
 use balances::AccountData;
-use blake2_rfc::blake2b::Blake2b;
 use codec::{Decode, Error};
 use hex::FromHexError;
 use primitive_types::U256;
@@ -42,30 +41,16 @@ fn storage_key_hash_vec(module: &str, storage_key_name: &str, param: Option<Vec<
 
 fn file_storage_key_hash_vec(module: &str, storage_key_name: &str, param: &str) -> Vec<u8> {
     let mut key = twox_128(module.as_bytes()).to_vec();
-    // println!("Keyhash after module hex encoding is: {:?}", key);
-
+    // println!("", )
     key.extend(&twox_128(storage_key_name.as_bytes()));
-    // println!("Key after storage encoding is: {:?}", key);
+    let file_key = hex::decode(param).unwrap();
+    // let file_key = hex::decode(param.to_owned().into_bytes()).unwrap();
+    // testing my shit
+    // let shubham_file_key = hex::decode(&blake2_256(file_key.as_bytes()));
+    // println!("Shubham key is: ",);
 
-    key.extend(&blake2_256(param.as_bytes()));
-
-    let module_encoding = hex::encode(&twox_128(module.as_bytes()));
-    let storage_key_name_encoding = hex::encode(&twox_128(storage_key_name.as_bytes()));
-    let mut hasher = Blake2b::new(32);
-    hasher.update(param.as_bytes());
-    let finalize = hasher.finalize();
-    let res = hex::encode(finalize.as_bytes());
-    // let file_hash_encoding = hex::encode(&blake2_256(param.as_bytes()));
-    println!("------------------------------------------");
-    println!("Module encoding: {:?}", module_encoding);
-    println!("Storage Key Name encoding: {:?}", storage_key_name_encoding);
-    println!("File Hash encoding: {:?}", res);
-    println!("------------------------------------------");
-
-    println!(
-        "IMPORTANT: key after file hash encoding of blake2_256 is: {:?}",
-        key
-    );
+    key.extend(&blake2_256(&file_key));
+    println!("The param received is: {}", param);
     key
 }
 

@@ -16,7 +16,6 @@
 ///! Very simple example that shows how to get some simple storage values.
 use clap::{load_yaml, App};
 use keyring::AccountKeyring;
-use std::option::Option;
 use substrate_api_client::{utils::hexstr_to_u256, Api};
 
 fn main() {
@@ -28,7 +27,7 @@ fn main() {
 
     // get some plain storage value
     // let file_key: Option<Vec<u8>> = Some("0x0000000000000000000000000000000000000000000000000000000000000001".as_bytes().to_vec());
-    let file_hash = "0x0000000000000000000000000000000000000000000000000000000000000001";
+    let file_hash = "0000000000000000000000000000000000000000000000000000000000000001";
     let result_str = api.get_file_storage("KittyStorage", "Value", file_hash).unwrap();
     println!("Result string is: {}", result_str);
     let result = hexstr_to_u256(result_str).unwrap();
