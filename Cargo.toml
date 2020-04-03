@@ -100,6 +100,7 @@ package = "pallet-contracts"
 
 [dev-dependencies]
 wabt = "0.9.0"
+hex-literal = "0.2.1"
 
 [dev-dependencies.keyring]
 git = "https://github.com/paritytech/substrate"
@@ -178,3 +179,7 @@ path = "src/examples/example_sudo.rs"
 [[example]]
 name = "substratekitties"
 path = "src/examples/example_substratekitties.rs"
+
+[[example]]
+name = "write_hash"
+path = "src/examples/example_writing_file_hash.rs"
