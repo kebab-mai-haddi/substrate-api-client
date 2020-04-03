@@ -15,8 +15,19 @@
 
 ///! Very simple example that shows how to get some simple storage values.
 use clap::{load_yaml, App};
+use codec::Decode;
+use hex;
 use keyring::AccountKeyring;
-use substrate_api_client::{utils::hexstr_to_u256, Api};
+use node_primitives::AccountId;
+use sp_core::crypto::Ss58Codec;
+use sp_runtime::AccountId32;
+use std;
+use std::str;
+use substrate_api_client::{
+    utils::{hexstr_to_account_data, hexstr_to_vec},
+    Api,
+};
+use hex_literal;
 
 fn main() {
     env_logger::init();
@@ -24,21 +35,18 @@ fn main() {
     let mut api = Api::new(format!("ws://{}", url));
     let signer = AccountKeyring::Alice.pair();
     api.signer = Some(signer);
-
-    // get some plain storage value
-    // let file_key: Option<Vec<u8>> = Some("0x0000000000000000000000000000000000000000000000000000000000000001".as_bytes().to_vec());
     let file_hash = "0000000000000000000000000000000000000000000000000000000000000001";
-    let result_str = api.get_file_storage("KittyStorage", "Value", file_hash).unwrap();
-    println!("Result string is: {}", result_str);
-    let result = hexstr_to_u256(result_str).unwrap();
-    println!("The result is {}", result);
-
+    let result_str = api
+        .get_file_storage("KittyStorage", "Value", file_hash)
+        .unwrap();
+    // let account: AccountId32 = hex_literal::hex![result_str[3:]].into();
+    let account: AccountId32 = hex_literal::hex!["d43593c715fdd31c61141abd04a99fd6822c8558854ccde39a5684e7a56da27d"].into();
+    println!("Account is: {:?}", account.to_ss58check());
 }
 
 pub fn get_node_url_from_cli() -> String {
     let yml = load_yaml!("../../src/examples/cli.yml");
     let matches = App::from_yaml(yml).get_matches();
-
     let node_ip = matches.value_of("node-server").unwrap_or("127.0.0.1");
     let node_port = matches.value_of("node-port").unwrap_or("9944");
     let url = format!("{}:{}", node_ip, node_port);
