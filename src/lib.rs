@@ -269,9 +269,11 @@ where
     }
 
     pub fn send_extrinsic(&self, xthex_prefixed: String) -> WsResult<Hash> {
-        debug!("sending extrinsic: {:?}", xthex_prefixed);
+        println!("sending extrinsic: {:?}", xthex_prefixed);
 
         let jsonreq = json_req::author_submit_and_watch_extrinsic(&xthex_prefixed).to_string();
+        println!("The json request formed is: \n");
+        println!("{:?}", jsonreq);
 
         let (result_in, result_out) = channel();
         rpc::send_extrinsic_and_wait_until_finalized(self.url.clone(), jsonreq, result_in);
