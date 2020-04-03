@@ -19,30 +19,18 @@
 use clap::{load_yaml, App};
 use keyring::AccountKeyring;
 use sp_core::crypto::Pair;
-// use substrate_api_client::extrinsic::xt_primitives::UncheckedExtrinsicV4;
-use substrate_api_client::{
-    compose_extrinsic, extrinsic::xt_primitives::UncheckedExtrinsicV4, Api,
-};
-
-// use crate::{compose_extrinsic, Api};
-
+use substrate_api_client::{compose_extrinsic, utils::hexstr_to_hash, Api};
 fn main() {
     env_logger::init();
     let url = get_node_url_from_cli();
-    // initialize api and set the signer (sender) that is used to sign the extrinsics
     let from = AccountKeyring::Alice.pair();
     let mut api = Api::new(format!("ws://{}", url)).set_signer(from);
-    // let signer = AccountKeyring::Alice.pair();
-    // api.signer = Some(signer);
-    // the names are given as strings
-    let xt = compose_extrinsic!(
-        api.clone(),
-        "Substratekitties",
-        "set_value",
-        "0x0000000000000000000000000000000000000000000000000000000000000002"
-    );
+    let file_hash =
+        hexstr_to_hash("0x0000000000000000000000000000000000000000000000000000000000000002".to_string())
+            .unwrap();
+    println!("File hash has become: {:?}", file_hash);
+    let xt = compose_extrinsic!(api.clone(), "Substratekitties", "set_value", file_hash);
     println!("[+] Composed Extrinsic:\n {:?}\n", xt);
-    // send and watch extrinsic until finalized
     let signer = AccountKeyring::Alice.pair();
     api.signer = Some(signer);
     let tx_hash = api.send_extrinsic(xt.hex_encode()).unwrap();
