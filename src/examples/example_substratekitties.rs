@@ -17,6 +17,7 @@
 use clap::{load_yaml, App};
 use codec::Decode;
 use hex;
+use hex_literal;
 use keyring::AccountKeyring;
 use node_primitives::AccountId;
 use sp_core::crypto::Ss58Codec;
@@ -27,7 +28,13 @@ use substrate_api_client::{
     utils::{hexstr_to_account_data, hexstr_to_vec},
     Api,
 };
-use hex_literal;
+
+fn from_slice(vector: Vec<u8>) -> [u8; 32] {
+    let mut array = [0; 32];
+    let bytes = &vector[..array.len()]; // panics if not enough data
+    array.copy_from_slice(bytes);
+    array
+}
 
 fn main() {
     env_logger::init();
@@ -35,13 +42,20 @@ fn main() {
     let mut api = Api::new(format!("ws://{}", url));
     let signer = AccountKeyring::Alice.pair();
     api.signer = Some(signer);
-    let file_hash = "0000000000000000000000000000000000000000000000000000000000000001";
-    let result_str = api
-        .get_file_storage("KittyStorage", "Value", file_hash)
+    let mut file_hash = "0000000000000000000000000000000000000000000000000000000000000001"
+        .to_string()
+        .into_bytes();
+    file_hash = hex::decode(file_hash).unwrap();
+    let mut result_str = api
+        .get_storage("KittyStorage", "Value", Some(file_hash))
         .unwrap();
-    // let account: AccountId32 = hex_literal::hex![result_str[3:]].into();
-    let account: AccountId32 = hex_literal::hex!["d43593c715fdd31c61141abd04a99fd6822c8558854ccde39a5684e7a56da27d"].into();
-    println!("Account is: {:?}", account.to_ss58check());
+    result_str.pop();
+    println!("Result str is: {:?}", &result_str);
+    let account_id: &str = &result_str[3..];
+    let account: [u8; 32] = from_slice(hex::decode(account_id).unwrap());
+    println!("Account after hex decode is: {:?}", account);
+    let _account_id: AccountId32 = account.into();
+    println!("Account is: {:?}", _account_id.to_ss58check());
 }
 
 pub fn get_node_url_from_cli() -> String {
