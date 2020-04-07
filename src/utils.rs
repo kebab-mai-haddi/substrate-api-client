@@ -67,7 +67,7 @@ pub fn storage_key_hash(module: &str, storage_key_name: &str, param: Option<Vec<
 pub fn file_storage_key_hash(module: &str, storage_key_name: &str, param: &str) -> String {
     let mut keyhash_str = hex::encode(file_storage_key_hash_vec(module, storage_key_name, param));
     println!(
-        "keyhash_str after storage_key_hash_vec func call is: {:?}",
+        "keyhash_str after file storage_key_hash_vec func call is: {:?}",
         keyhash_str
     );
     keyhash_str.insert_str(0, "0x");
